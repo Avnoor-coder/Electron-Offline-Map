@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Offline India Random Coordinate Map</title>
+
+  <link rel="stylesheet"
+    href="node_modules/leaflet/dist/leaflet.css"/>
+
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #info {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 1000;
+      min-width: 220px;
+    }
+
+    #info h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color: #4FC3F7;
+    }
+
+    .coord {
+      font-size: 14px;
+      margin: 4px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="info">
+    <h3>India Random Coordinate</h3>
+    <div class="coord">Lat: <span id="lat">--</span></div>
+    <div class="coord">Lng: <span id="lng">--</span></div>
+    <div class="coord">Points: <span id="count">0</span></div>
+    <div class="coord">Update: 10 sec</div>
+  </div>
+
+  <script src="node_modules/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    function randomCoord(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    // 🇮🇳 India bounding box (keeps points inside India)
+    const INDIA_BOUNDS = {
+      latMin: 6,
+      latMax: 37,
+      lngMin: 68,
+      lngMax: 97
+    };
+
+    const map = L.map('map', {
+      minZoom: 4,
+      maxZoom: 14
+    }).setView([22.5, 78.9], 5);
+
+    // ✅ TILESERVER CONNECTION
+    L.tileLayer('http://localhost:8080/styles/basic-preview/{z}/{x}/{y}.png', {
+      attribution: 'Offline India Map',
+      maxZoom: 14
+    }).addTo(map);
+
+    let path = [];
+    let polyline = null;
+
+    function newRandomLocation() {
+      const lat = randomCoord(INDIA_BOUNDS.latMin, INDIA_BOUNDS.latMax);
+      const lng = randomCoord(INDIA_BOUNDS.lngMin, INDIA_BOUNDS.lngMax);
+
+      const point = [lat, lng];
+      path.push(point);
+
+      L.marker(point).addTo(map);
+
+      if (polyline) map.removeLayer(polyline);
+      polyline = L.polyline(path, { weight: 3 }).addTo(map);
+
+      map.setView(point, 6);
+
+      document.getElementById("lat").textContent = lat.toFixed(5);
+      document.getElementById("lng").textContent = lng.toFixed(5);
+      document.getElementById("count").textContent = path.length;
+    }
+
+    newRandomLocation();
+    setInterval(newRandomLocation, 10000);
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+tileserver-gl osm-2020-02-10-v3.11_asia_india.mbtiles
